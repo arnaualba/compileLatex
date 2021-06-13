@@ -1,0 +1,68 @@
+#!/bin/sh
+
+# Usage
+usage()
+{
+echo "Usage:"
+echo "This script compiles a latex file with its references and citations included correctly."
+echo "-f | --file filename (without extenstion),"
+echo "        e.g. compileLatex --file myPaper would compile myPaper.tex to myPaper.pdf"
+echo "-c | --clean removes the extra files generated during the latex compilation,"
+echo "        namely *toc, *lov, *aux, *bbl, *blg, *lof, *blx.bib, *lot, *out, *nav, *snm"
+echo "-h | --help provides this help message"
+}
+
+# Check arguments
+clean=
+filename=""
+
+while [ "$1" != "" ]; do
+    case $1 in
+        -f | --file )           shift
+                                filename=$1
+                                ;;
+        -c | --clean )          clean=1
+                                ;;
+        -h | --help )           usage
+                                return
+                                ;;
+        * )                     usage
+                                return
+    esac
+    shift
+done
+
+# Compile latex and bibliography (2 compilations are necessary to include all references and citations)
+if [ "$filename" != "" ]; then
+    if [ -f "$filename" ]; then
+        echo "compiling file = $filename.tex"
+        pdflatex $filename.tex
+        bibtex   $filename.aux
+        pdflatex $filename.tex
+        pdflatex $filename.tex
+    else
+        echo "unknown file $filename.tex"
+    fi
+    return
+fi
+
+# Clean auxiliary files
+if [ "$clean" = "1" ]; then
+    echo "Cleaning up auxiliary files"
+    rm *toc
+    rm *log
+    rm *aux
+    rm *bbl
+    rm *blg
+    rm *lof
+    rm *blx.bib
+    rm *lot
+    rm *out
+    rm *nav
+    rm *snm
+    return
+fi
+
+# If no filename and no cleaning
+usage
+return
